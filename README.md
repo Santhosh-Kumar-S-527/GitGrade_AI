@@ -80,6 +80,7 @@ bash
 - pip install flask flask-cors requests
 - python backend/app.py
 
+next
 - Open `index.html` in your browser
 - Enter a public GitHub repository URL
 - Click Analyze
