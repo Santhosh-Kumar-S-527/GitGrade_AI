@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>GitGrade AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app {
+      background: #ffffff;
+      width: 90%;
+      max-width: 850px;
+      border-radius: 14px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    h1 {
+      margin: 0;
+      color: #203a43;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    input {
+      flex: 1;
+      padding: 14px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2c5364;
+    }
+
+    button {
+      padding: 14px 24px;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #2c5364;
+      color: white;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #203a43;
+    }
+
+    .loading {
+      text-align: center;
+      color: #2c5364;
+      font-weight: bold;
+      display: none;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #f7f9fb;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 18px;
+      border-left: 5px solid #2c5364;
+      animation: slideUp 0.5s ease;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: #203a43;
+    }
+
+    .score {
+      font-size: 32px;
+      font-weight: bold;
+      color: #2c5364;
+    }
+
+    .confidence-label {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .confidence-bar {
+      height: 12px;
+      border-radius: 6px;
+      background: #ddd;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s ease;
+    }
+
+    .high {
+      background: #2ecc71;
+    }
+
+    .medium {
+      background: #f1c40f;
+    }
+
+    .low {
+      background: #e74c3c;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      margin-top: 15px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <h1>GitGrade AI</h1>
+    <p class="subtitle">
+      Intelligent GitHub Repository Evaluation with a Recruiter’s Perspective
+    </p>
+
+    <div class="input-group">
+      <input
+        id="repo"
+        placeholder="https://github.com/username/repository"
+      />
+      <button onclick="analyze()">Analyze</button>
+    </div>
+
+    <div class="loading" id="loading">
+      Analyzing repository… Please wait
+    </div>
+
+    <div id="result"></div>
+
+    <footer>
+      Built for GitGrade Hackathon • AI + Code Analysis + Developer Profiling
+    </footer>
+  </div>
+
+  <script>
+    async function analyze() {
+      const repo = document.getElementById("repo").value.trim();
+      const result = document.getElementById("result");
+      const loading = document.getElementById("loading");
+
+      result.innerHTML = "";
+
+      if (!repo) {
+        alert("Please enter a GitHub repository URL.");
+        return;
+      }
+
+      if (!repo.startsWith("https://github.com/")) {
+        alert("Please enter a valid public GitHub repository URL.");
+        return;
+      }
+
+      loading.style.display = "block";
+
+      try {
+        const res = await fetch("http://127.0.0.1:5000/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ repo })
+        });
+
+        loading.style.display = "none";
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(err.error || "Something went wrong.");
+          return;
+        }
+
+        const data = await res.json();
+
+        let confidenceText = "";
+        let confidenceClass = "";
+        let confidenceWidth = "";
+
+        if (data.score >= 80) {
+          confidenceText = "🟢 High Confidence (Industry Ready)";
+          confidenceClass = "high";
+          confidenceWidth = "90%";
+        } else if (data.score >= 50) {
+          confidenceText = "🟡 Medium Confidence (Needs Improvement)";
+          confidenceClass = "medium";
+          confidenceWidth = "60%";
+        } else {
+          confidenceText = "🔴 Low Confidence (Beginner Level)";
+          confidenceClass = "low";
+          confidenceWidth = "30%";
+        }
+
+        result.innerHTML = `
+          <div class="card">
+            <h3>Score</h3>
+            <div class="score">${data.score} / 100</div>
+            <div class="confidence-label">${confidenceText}</div>
+            <div class="confidence-bar">
+              <div class="confidence-fill ${confidenceClass}" style="width:${confidenceWidth}"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Summary</h3>
+            <p>${data.summary}</p>
+          </div>
+
+          <div class="card">
+            <h3>Recruiter Lens</h3>
+            <p>${data.recruiter_view}</p>
+          </div>
+
+          <div class="card">
+            <h3>Personalized Roadmap</h3>
+            <ul>
+              ${data.roadmap.map(item => `<li>${item}</li>`).join("")}
+            </ul>
+          </div>
+        `;
+
+      } catch (error) {
+        loading.style.display = "none";
+        alert("Unable to connect to backend. Please ensure the server is running.");
+      }
+    }
+  </script>
+
+</body>
+</html>
