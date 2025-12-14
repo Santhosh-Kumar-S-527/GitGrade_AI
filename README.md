@@ -77,8 +77,8 @@ APIs:
 ### Steps
 
 bash
-pip install flask flask-cors requests
-python backend/app.py
+-pip install flask flask-cors requests
+-python backend/app.py
 
 - Open `index.html` in your browser
 - Enter a public GitHub repository URL
