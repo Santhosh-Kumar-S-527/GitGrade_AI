@@ -85,12 +85,6 @@ next
 - Enter a public GitHub repository URL
 - Click Analyze
 
-
-###  Demo Video
-
-Demo Recording:
-https://drive.google.com/file/d/1qspRUjuRnXUZxv2bzF8FiPo5TagNALJW/view?usp=drive_link
-
 ---
 
 ## AI & Intelligence Approach
